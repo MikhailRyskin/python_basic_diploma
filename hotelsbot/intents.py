@@ -30,54 +30,49 @@ INTENTS = [
     }
 ]
 
+CITY_STEP = {
+                'text': 'В каком городе искать отели?',
+                'failure_text': 'В нашей базе нет отелей для этого города. Попробуйте ввести другой город',
+                'handler': 'handle_city',
+                'next_step': 'step2'
+            }
+
+
+NUMBERS_STEP = {
+                'text': 'Какое количество отелей вывести (максимум 25)?',
+                'failure_text': 'Неверное количество. Только цифры, число не больше 25',
+                'handler': 'handle_numbers',
+                'next_step': 'step3'
+            }
+
+RESULT_STEP = {
+                'text': 'Список  отелей по вашему запросу:\n{hotels}\nСпасибо за обращение!',
+                'failure_text': None,
+                'handler': None,
+                'next_step': None
+            }
+
 SCENARIOS = {
     'lowprice': {
         'first_step': 'step1',
         'steps': {
-            'step1': {
-                'text': 'В каком городе искать отели?',
-                'failure_text': 'Ошибка с городом. Попробуйте ещё раз',
-                'handler': 'handle_city',
-                'next_step': 'step2'
-            },
-            'step2': {
-                'text': 'Какое количество отелей вывести (максимум 10)?',
-                'failure_text': 'Ошибка с количеством. Попробуйте ещё раз',
-                'handler': 'handle_numbers',
-                'next_step': None
-            },
-
+            'step1': CITY_STEP,
+            'step2': NUMBERS_STEP,
+            'step3': RESULT_STEP
         }
-
     },
     'highprice': {
         'first_step': 'step1',
         'steps': {
-            'step1': {
-                'text': 'В каком городе искать отели?',
-                'failure_text': 'Ошибка с городом. Попробуйте ещё раз',
-                'handler': 'handle_city',
-                'next_step': 'step2'
-            },
-            'step2': {
-                'text': 'Какое количество отелей вывести (максимум 10)?',
-                'failure_text': 'Ошибка с количеством. Попробуйте ещё раз',
-                'handler': 'handle_numbers',
-                'next_step': None
-            },
-
+            'step1': CITY_STEP,
+            'step2': NUMBERS_STEP,
+            'step3': RESULT_STEP,
         }
-
     },
     'bestdeal': {
         'first_step': 'step1',
         'steps': {
-            'step1': {
-                'text': 'В каком городе искать отели?',
-                'failure_text': 'Ошибка с городом. Попробуйте ещё раз',
-                'handler': 'handle_city',
-                'next_step': 'step2'
-            },
+            'step1': CITY_STEP,
             'step2': {
                 'text': 'Введите диапазон цен (в формате мин. цена/макс. цена',
                 'failure_text': 'Ошибка с ценами. Попробуйте ещё раз',
@@ -85,18 +80,18 @@ SCENARIOS = {
                 'next_step': 'step3'
             },
             'step3': {
-                'text': 'Введите диапазон расстояний от центра (в формате мин. расст./макс. расст.',
-                'failure_text': 'Ошибка с расстояниями. Попробуйте ещё раз',
+                'text': 'Введите максимальное расстояний от центра города',
+                'failure_text': 'Ошибка с расстоянием. Попробуйте ещё раз',
                 'handler': 'handle_distance',
                 'next_step': 'step4'
             },
             'step4': {
-                'text': 'Какое количество отелей вывести (максимум 10)?',
-                'failure_text': 'Ошибка с количеством. Попробуйте ещё раз',
+                'text': 'Какое количество отелей вывести (максимум 25)?',
+                'failure_text': 'Неверное количество. Только цифры, число не больше 25',
                 'handler': 'handle_numbers',
-                'next_step': None
+                'next_step': 'step5'
             },
-
+            'step5': RESULT_STEP,
         }
     },
 }
