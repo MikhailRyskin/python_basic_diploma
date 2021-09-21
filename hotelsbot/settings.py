@@ -1,3 +1,7 @@
-TOKEN = '1990544565:AAEnMMZYFoNeL1igTRCc8NIH8kpkzV_-kfA'
+import os
+from dotenv import load_dotenv
 
-RAPIDAPI_KEY = 'eed0ed3ad8mshb144bf4b862af69p1bdf33jsn22cc43371123'
+load_dotenv()
+
+TOKEN = os.getenv('TOKEN')
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
