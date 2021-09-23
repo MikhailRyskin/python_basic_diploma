@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pony.orm import Database, Required, Json
 
 db = Database()
