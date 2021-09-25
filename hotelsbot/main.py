@@ -1,12 +1,26 @@
 # -*- coding: utf-8 -*-
+# Telegram-бот для поиска отелей на сайте Hotels.com
+
 import telebot
 from pony.orm import db_session
+from datetime import datetime
 from settings import TOKEN
-from models import UserState
 import handlers
 from intents import INTENTS, SCENARIOS, HELP_ANSWER
+from models import SearchHistory
 
 bot = telebot.TeleBot(TOKEN)
+
+users_state = {}
+
+
+# словарь из словарей вида {user_id: {'scenario_name': 'lowerprice',
+#                                     'step_name': 'step2',
+#                                     'context': {'city': 'paris', 'numbers': '3', ..., ...}
+#                                     }
+#                           },
+# для временного хранения состояний сценариев пользователей. При старте сценария создается элемент
+# словаря с ключом user_id, при завершении сценария элемент удаляется.
 
 
 @bot.message_handler(content_types=['text'])
@@ -19,18 +33,18 @@ def on_event(message) -> None:
     """
     text = message.text.lower()
     user_id = message.from_user.id
-    state = UserState.get(user_id=str(user_id))
+    state = users_state.get(user_id)
 
     for intent in INTENTS:
         if text == intent['command']:
             # если сообщение является командой из перечня допустимых команд
             if intent['answer']:
                 # если действие по команде - просто выдача ответного сообщения
-                finish_scenario(state)
+                finish_scenario(user_id)
                 bot.send_message(message.from_user.id, intent['answer'])
             else:
                 # начало нового сценария
-                finish_scenario(state)
+                finish_scenario(user_id)
                 scenario_name = intent['scenario']
                 start_scenario(user_id, scenario_name)
             break
@@ -43,7 +57,7 @@ def on_event(message) -> None:
             bot.send_message(message.from_user.id, HELP_ANSWER)
 
 
-def start_scenario(user_id: str, scenario_name: str) -> None:
+def start_scenario(user_id: int, scenario_name: str) -> None:
     """
     начинает выполнение нового сценария
     :param user_id: идентификатор пользователя
@@ -53,44 +67,48 @@ def start_scenario(user_id: str, scenario_name: str) -> None:
     scenario = SCENARIOS[scenario_name]
     first_step = scenario['first_step']
     step = scenario['steps'][first_step]
-    UserState(user_id=str(user_id), scenario_name=scenario_name, step_name=first_step, context={})
+    users_state[user_id] = {'scenario_name': scenario_name, 'step_name': first_step, 'context': {}}
     bot.send_message(user_id, step['text'])
 
 
-def continue_scenario(user_id: str, state: UserState, text: str) -> None:
+def continue_scenario(user_id: int, state: dict, text: str) -> None:
     """
     продолжает выполнение сценария
     :param user_id: идентификатор пользователя
-    :param state: UserState object, содержащий состояние сценария
+    :param state: словарь, содержащий состояние сценария пользователя
     :param text: текст сообщения
     :return:
     """
-    steps = SCENARIOS[state.scenario_name]['steps']
-    step = steps[state.step_name]
+    steps = SCENARIOS[state['scenario_name']]['steps']
+    step = steps[state['step_name']]
     handler = getattr(handlers, step['handler'])
-    if handler(text=text, context=state.context, scenario_name=state.scenario_name):
+    if handler(text=text, context=state['context'], scenario_name=state['scenario_name'], user_id=user_id):
         # при успешной отработке шага выдача сообщения следующего шага сценария
         next_step = steps[step['next_step']]
-        bot.send_message(user_id, next_step['text'].format(**state.context))
+        bot.send_message(user_id, next_step['text'].format(**state['context']))
         if next_step['next_step']:
             # если есть следующий шаг, то переход на него
-            state.step_name = step['next_step']
+            state['step_name'] = step['next_step']
         else:
             # иначе завершение сценария
-            finish_scenario(state)
+            if state['scenario_name'] != 'history':
+                # сохранение запроса в БД для команд поиска отелей
+                search_date_time = datetime.now().strftime('%d.%m.%Y %H:%M')
+                SearchHistory(user_id=user_id, search_date=search_date_time,
+                              command=state['scenario_name'], hotels=state['context']['hotels'])
+            finish_scenario(user_id)
     else:
         # при неудачной обработке шага - сообщение об ошибке и повтор этого шага
         bot.send_message(user_id, step['failure_text'])
 
 
-def finish_scenario(state: UserState) -> None:
+def finish_scenario(user_id: int) -> None:
     """
     завершает сценарий
-    :param state: UserState object, содержащий состояние сценария
+    :param user_id: идентификатор пользователя
     :return:
     """
-    if state is not None:
-        state.delete()
+    users_state.pop(user_id, 0)
 
 
 if __name__ == '__main__':

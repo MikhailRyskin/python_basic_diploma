@@ -14,7 +14,7 @@ def get_city(text: str) -> str:
     Ищет город по названию в locations.
     При успешном поиске возвращает id города. Если город не найден,  возвращает пустую строку.
     :param text: название города, введённое пользователем
-    :return:
+    :return destination_id: id города
     """
     url = "https://hotels4.p.rapidapi.com/locations/search"
     querystring = {"query": text, "locale": "ru_RU"}
@@ -40,7 +40,7 @@ def get_hotels(context: dict, scenario_name: str) -> str:
     возвращает пустую строку.
     :param context: словарь с информацией, получаемой из ответов пользователя
     :param scenario_name: название сценария
-    :return:
+    :return hotels_line: информация о найденных отелях
     """
     url = "https://hotels4.p.rapidapi.com/properties/list"
     headers = {
@@ -102,7 +102,6 @@ def get_hotels(context: dict, scenario_name: str) -> str:
     # строка содержит сообщение об этом
     if hotels_list:
         hotels = []
-        hotels_line = ''
         for hotel in hotels_list:
             name = hotel['name']
             address_dict = hotel['address']
@@ -115,7 +114,7 @@ def get_hotels(context: dict, scenario_name: str) -> str:
             distance_from_center = hotel['landmarks'][0]['distance']
             hotel_line = f'{name}, адрес:{address}, расстояние от центра:{distance_from_center}, цена:{price}\n'
             hotels.append(hotel_line)
-            hotels_line = '\n'.join(hotels)
+        hotels_line = '\n'.join(hotels)
     else:
         hotels_line = NOT_HOTELS_MESSAGE
     return hotels_line

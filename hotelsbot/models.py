@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-from pony.orm import Database, Required, Json
+from pony.orm import Database, Required
 
 db = Database()
 db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 
 
-class UserState(db.Entity):
-    """ Состояние пользователя внутри сценария."""
-    user_id = Required(str, unique=True)
-    scenario_name = Required(str)
-    step_name = Required(str)
-    context = Required(Json)
+class SearchHistory(db.Entity):
+    """ История поиска пользователей."""
+    user_id = Required(int)
+    search_date = Required(str)
+    command = Required(str)
+    hotels = Required(str)
 
 
 db.generate_mapping(create_tables=True)
