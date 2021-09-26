@@ -12,8 +12,6 @@ from models import SearchHistory
 bot = telebot.TeleBot(TOKEN)
 
 users_state = {}
-
-
 # словарь из словарей вида {user_id: {'scenario_name': 'lowerprice',
 #                                     'step_name': 'step2',
 #                                     'context': {'city': 'paris', 'numbers': '3', ..., ...}
