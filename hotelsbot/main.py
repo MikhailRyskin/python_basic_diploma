@@ -36,13 +36,13 @@ def on_event(message) -> None:
     for intent in INTENTS:
         if text == intent['command']:
             # если сообщение является командой из перечня допустимых команд
+            # прекращение текущего сценария
+            finish_scenario(user_id)
             if intent['answer']:
                 # если действие по команде - просто выдача ответного сообщения
-                finish_scenario(user_id)
                 bot.send_message(message.from_user.id, intent['answer'])
             else:
                 # начало нового сценария
-                finish_scenario(user_id)
                 scenario_name = intent['scenario']
                 start_scenario(user_id, scenario_name)
             break
